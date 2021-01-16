@@ -1,4 +1,4 @@
-const Sauces = require("../models/sauces");
+const Sauce = require("../models/sauces");
 
 exports.getSauces = (req, res, next) => {
   Sauce.find()
@@ -7,9 +7,13 @@ exports.getSauces = (req, res, next) => {
 };
 
 exports.createSauce = (req, res, next) => {
-  delete req.body._id;
+  const sauceObject = JSON.parse(req.body.sauce);
+  delete sauceObject._id;
   const sauce = new Sauce({
-    ...req.body,
+    ...sauceObject,
+    imageUrl: `${req.protocol}://${req.get("host")}/images/${
+      req.file.filename
+    }`,
   });
   sauce
     .save()
