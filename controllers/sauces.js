@@ -16,6 +16,11 @@ exports.createSauce = (req, res, next) => {
       req.file.filename
     }`,
   });
+
+  sauce.likes = 0;
+  sauce.dislikes = 0;
+  sauce.userLikes = [];
+  sauce.userdislikes = [];
   sauce
     .save()
     .then(() => res.status(201).json({ message: "Sauce enregistrée !" }))
