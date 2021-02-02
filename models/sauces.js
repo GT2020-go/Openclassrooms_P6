@@ -13,8 +13,8 @@ const sauceSchema = mongoose.Schema({
     min: [1, "minimum is 1"],
     max: [10, "maximum is 10"],
   },
-  likes: { type: Number, required: false },
-  dislikes: { type: Number, required: false },
+  likes: { type: Number, required: true, min: [0, "minimum is 0"] },
+  dislikes: { type: Number, required: true, max: [0, "maximum is 0"] },
   usersLiked: [{ type: String, required: false }],
   usersDisliked: [{ type: String, required: false }],
 });
