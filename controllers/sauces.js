@@ -84,25 +84,41 @@ exports.likes = (req, res, next) => {
     //------------------
     case 0:
       console.log("null");
+      const query = { usersLiked: userId };
+      const projection = { _id: sauceId };
+      Sauce.findOne(query, projection)
+        .then((result) => {
+          if (result) {
+            console.log(`Successfully found document: ${result}.`);
+            Sauce.updateOne(
+              { _id: sauceId },
+              { $pull: { usersLiked: userId }, $inc: { likes: -1 } }
+            )
+              .then(() => res.status(200).json({ message: "Sauce unliked !" }))
+              .catch((error) => res.status(401).json({ error }));
+          } else {
+            console.log("No document matches the provided query.");
+          }
+          return result;
+        })
+        .catch((err) => console.error(`Failed to find document: ${err}`));
 
-      console
-        .log(usersLiked.some(userId))
+      //----------------------
+      // Sauce.findOne({ _id: sauceId })
+      //   .then(() => {
+      //     if (usersLiked.some(userId) === true) {
+      //       Sauce.updateOne(
+      //         { _id: sauceId },
+      //         { $pull: { usersLiked: userId }, $inc: { likes: -1 } }
+      //       )
+      //         .then(() => res.status(200).json({ message: "Sauce unliked !" }))
+      //         .catch((error) => res.status(401).json({ error }));
+      //     }
 
-        // Sauce.findOne({ _id: sauceId })
-        //   .then(() => {
-        //     if (usersLiked.some(userId) === true) {
-        //       Sauce.updateOne(
-        //         { _id: sauceId },
-        //         { $pull: { usersLiked: userId }, $inc: { likes: -1 } }
-        //       )
-        //         .then(() => res.status(200).json({ message: "Sauce unliked !" }))
-        //         .catch((error) => res.status(401).json({ error }));
-        //     }
-
-        //     console.log("that's all folks:" + usersLiked.some(userId));
-        //   })
-        .then(() => res.status(200).json({ message: "Back to ZERO !" }))
-        .catch((error) => res.status(400).json({ error }));
+      //     console.log("that's all folks:" + usersLiked.some(userId));
+      //   })
+      // .then(() => res.status(200).json({ message: "Back to ZERO !" }))
+      // .catch((error) => res.status(400).json({ error }));
       break;
     //------------------
   }
