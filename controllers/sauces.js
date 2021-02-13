@@ -1,6 +1,5 @@
 const Sauce = require("../models/sauces");
 const fs = require("fs");
-const { Mongoose } = require("mongoose");
 
 exports.getSauces = (req, res, next) => {
   Sauce.find()
@@ -58,8 +57,8 @@ exports.likes = (req, res, next) => {
   const sauceId = req.params.id;
 
   console.log(like);
-  console.log(userId);
-  console.log(sauceId);
+  console.log("userId: " + userId);
+  console.log("sauceId: " + sauceId);
 
   switch (like) {
     case 1:
@@ -75,7 +74,7 @@ exports.likes = (req, res, next) => {
       console.log("disliked");
       Sauce.updateOne(
         { _id: sauceId },
-        { $push: { usersDisliked: userId }, $inc: { dislikes: like } }
+        { $push: { usersDisliked: userId }, $inc: { dislikes: -like } }
       )
         .then(() => res.status(200).json({ message: "Sauce disliked !" }))
         .catch((error) => res.status(400).json({ error }));
@@ -84,43 +83,38 @@ exports.likes = (req, res, next) => {
     //------------------
     case 0:
       console.log("null");
-      const query = { usersLiked: userId };
-      const projection = { _id: sauceId };
-      Sauce.findOne(query, projection)
-        .then((result) => {
-          if (result) {
-            console.log(`Successfully found document: ${result}.`);
+      // const query = { userId };
+      // const projection = { _id: sauceId };
+      Sauce.findOne({ _id: sauceId })
+        .then((sauce) => {
+          // res.status(200).json({ message: "Sauce found !" });
+          console.log("found the sauce: " + sauce);
+          console.log(sauce.usersLiked);
+          console.log(typeof sauce.usersLiked[0]);
+          // console.log(
+          //   "method: " + sauce.usersLiked.some((test) => test === userId)
+          // );
+          const isUserId = (test) => test === userId;
+          if (sauce.usersLiked.some(isUserId)) {
             Sauce.updateOne(
               { _id: sauceId },
               { $pull: { usersLiked: userId }, $inc: { likes: -1 } }
             )
               .then(() => res.status(200).json({ message: "Sauce unliked !" }))
               .catch((error) => res.status(401).json({ error }));
-          } else {
-            console.log("No document matches the provided query.");
+          } else if (sauce.usersDisliked.some(isUserId)) {
+            Sauce.updateOne(
+              { _id: sauceId },
+              { $pull: { usersDisliked: userId }, $inc: { dislikes: -1 } }
+            )
+              .then(() =>
+                res.status(200).json({ message: "Sauce undisliked !" })
+              )
+              .catch((error) => res.status(401).json({ error }));
           }
-          return result;
         })
-        .catch((err) => console.error(`Failed to find document: ${err}`));
-
-      //----------------------
-      // Sauce.findOne({ _id: sauceId })
-      //   .then(() => {
-      //     if (usersLiked.some(userId) === true) {
-      //       Sauce.updateOne(
-      //         { _id: sauceId },
-      //         { $pull: { usersLiked: userId }, $inc: { likes: -1 } }
-      //       )
-      //         .then(() => res.status(200).json({ message: "Sauce unliked !" }))
-      //         .catch((error) => res.status(401).json({ error }));
-      //     }
-
-      //     console.log("that's all folks:" + usersLiked.some(userId));
-      //   })
-      // .then(() => res.status(200).json({ message: "Back to ZERO !" }))
-      // .catch((error) => res.status(400).json({ error }));
+        .catch((error) => res.status(400).json({ error }));
       break;
-    //------------------
   }
 };
 
