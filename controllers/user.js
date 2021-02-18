@@ -1,9 +1,11 @@
+//security:
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-
 const User = require("../models/user");
 
 exports.signup = (req, res, next) => {
+  console.log(req.body.email);
+
   bcrypt
     .hash(req.body.password, 10)
     .then((hash) => {

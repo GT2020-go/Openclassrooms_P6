@@ -49,20 +49,13 @@ exports.modifyOneSauce = (req, res, next) => {
     .catch((error) => res.status(400).json({ error }));
 };
 
-//controller to do: 1 SEULE METHODE AVEC UN SWITCH STATES: 0, LIKE, DISLIKE en utilisantles operateurs mongoDB $pull, $push, $inc
-
 exports.likes = (req, res, next) => {
   const like = req.body.like;
   const userId = req.body.userId;
   const sauceId = req.params.id;
 
-  console.log(like);
-  console.log("userId: " + userId);
-  console.log("sauceId: " + sauceId);
-
   switch (like) {
     case 1:
-      console.log("liked");
       Sauce.updateOne(
         { _id: sauceId },
         { $push: { usersLiked: userId }, $inc: { likes: like } }
@@ -71,7 +64,6 @@ exports.likes = (req, res, next) => {
         .catch((error) => res.status(400).json({ error }));
       break;
     case -1:
-      console.log("disliked");
       Sauce.updateOne(
         { _id: sauceId },
         { $push: { usersDisliked: userId }, $inc: { dislikes: -like } }
@@ -79,30 +71,17 @@ exports.likes = (req, res, next) => {
         .then(() => res.status(200).json({ message: "Sauce disliked !" }))
         .catch((error) => res.status(400).json({ error }));
       break;
-
-    //------------------
     case 0:
-      console.log("null");
-      // const query = { userId };
-      // const projection = { _id: sauceId };
       Sauce.findOne({ _id: sauceId })
         .then((sauce) => {
-          // res.status(200).json({ message: "Sauce found !" });
-          console.log("found the sauce: " + sauce);
-          console.log(sauce.usersLiked);
-          console.log(typeof sauce.usersLiked[0]);
-          // console.log(
-          //   "method: " + sauce.usersLiked.some((test) => test === userId)
-          // );
-          const isUserId = (test) => test === userId;
-          if (sauce.usersLiked.some(isUserId)) {
+          if (sauce.usersLiked.some((id) => id === userId)) {
             Sauce.updateOne(
               { _id: sauceId },
               { $pull: { usersLiked: userId }, $inc: { likes: -1 } }
             )
               .then(() => res.status(200).json({ message: "Sauce unliked !" }))
               .catch((error) => res.status(401).json({ error }));
-          } else if (sauce.usersDisliked.some(isUserId)) {
+          } else if (sauce.usersDisliked.some((id) => id === userId)) {
             Sauce.updateOne(
               { _id: sauceId },
               { $pull: { usersDisliked: userId }, $inc: { dislikes: -1 } }
@@ -117,8 +96,6 @@ exports.likes = (req, res, next) => {
       break;
   }
 };
-
-//-------------------------------------------------------
 
 exports.deleteOneSauce = (req, res, next) => {
   Sauce.findOne({ _id: req.params.id })
